@@ -58,7 +58,9 @@ public class Instance {
 
         this.initMaster();
 
-        LOG.info(String.format("start psync host[%s] port[%s] pwd[%s] runid[%s] offset[%s]", this.canalConfig.host, this.canalConfig.port, this.canalConfig.password, this.runid, this.offset));
+//        LOG.info(String.format("start psync host[%s] port[%s] pwd[%s] runid[%s] offset[%s]", this.canalConfig.host, this.canalConfig.port, this.canalConfig.password, this.runid, this.offset));
+        System.out.println(String.format("start psync host[%s] port[%s] pwd[%s] runid[%s] offset[%s]", this.canalConfig.host, this.canalConfig.port, this.canalConfig.password, this.runid, this.offset));
+
 
         this.connection.sendCommand(Protocol.Command.PSYNC, this.runid, this.offset.toString());
         this.connection.flush();
@@ -75,8 +77,10 @@ public class Instance {
              */
             @Override
             public void run() {
+
                 this.instance.connection.replconf(this.instance.getOffset());
 //                LOG.info("\n*********  replconf ack offset:" + this.instance.getOffset() + "  **********\n");
+//                System.out.println("\n*********  replconf ack offset:" + this.instance.getOffset() + "  **********\n");
 //                this.instance.connection.ping();
             }
         }
@@ -116,7 +120,8 @@ public class Instance {
 
                         String s = new String(bb);
                         try {
-                            this.syncDataQueue.put(new SyncData(s, System.currentTimeMillis()));
+//                            System.out.println(s);
+                            this.syncDataQueue.put(new SyncData(s, System.currentTimeMillis()));  //将解析出来aof记录往队列里添加
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         } finally {
@@ -185,7 +190,9 @@ public class Instance {
                                 RedisCanalDTO dto = new RedisCanalDTO(key, value, syncData.getTimestamp());
 
                                 this.instance.redisCanalQueue.put(dto);
-                                LOG.info("redisCanalQueue.size(): " + this.instance.redisCanalQueue.size() + " " + dto.toString());
+//                                LOG.info("redisCanalQueue.size(): " + this.instance.redisCanalQueue.size() + " " + dto.toString());
+                                System.out.println("redisCanalQueue.size(): " + this.instance.redisCanalQueue.size() + " " + dto.toString());
+
                             }
 
                         }
@@ -222,6 +229,7 @@ public class Instance {
                         * 往kafka写数据
                         * */
 //                        String topic = "redis.canal.data";
+
 //                            System.out.println("kafka data: " + value);
                             instance.kafkaUtils.produce(instance.canalConfig.topic, redisCanalDTO.getTimestamp().toString(), value);
                         } else {
